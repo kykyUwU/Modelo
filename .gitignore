@@ -1,0 +1,12 @@
+# Fichiers lourds GROMACS
+*.trr
+*.xtc
+*.edr
+*.tpr
+*.cpt
+*.gro
+*.log
+
+# Fichiers temporaires
+#*
+*~
