@@ -1,0 +1,12 @@
+ligand = DHT.pdbqt
+
+center_x = 16.441
+center_y = 9.250
+center_z = 12.243
+
+size_x = 58
+size_y = 54
+size_z = 63
+
+exhaustiveness = 32
+num_modes = 20
