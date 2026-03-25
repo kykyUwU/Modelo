@@ -1,19 +1,17 @@
-# Boucle sur tous les fichiers 2AM9xxx.pdbqt
-for prot in 2AM9*.pdbqt; do
+for dossier in 2AM9_clean*/; do
     
-    # On extrait le nom de base
-    basename=$(basename "$prot" .pdbqt)
+    # Récupère le nom du mutant
+    mutant=$(basename "$dossier")
+    echo "⚙️ Docking de $mutant..."
     
-    echo "$basename"
-    
-    # Vina
-    vina --receptor "$prot" --config config.txt --out "${basename}_resultat.pdbqt" > "${basename}_log.txt"
-    
-    mkdir -p "$basename"
-    mv "$prot" "${basename}_resultat.pdbqt" "${basename}_log.txt" "$basename/"
-
-    echo "$basename done"
-
+    # La commande Vina avec ton config.txt + forçage des 20 poses
+    vina --config config.txt \
+         --receptor "$dossier/${mutant}.pdbqt" \
+         --ligand "ligand.pdbqt" \
+         --num_modes 20 \
+         --energy_range 15 \
+         --out "$dossier/${mutant}_resultat.pdbqt" > "$dossier/${mutant}_log.txt"
+         
 done
 
-echo "End"
+echo "🎉 Docking terminé !"
