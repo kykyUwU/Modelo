@@ -19,6 +19,4 @@ cmd.alter("all", "resn=resn[:3]")
 
 # 5. Sauvegarder
 cmd.sort()
-cmd.save("prot_ready.pdb")
-
-print("✨ Fichier prot_ready.pdb généré avec succès.")
+cmd.save("2AM9_clean.pdb")

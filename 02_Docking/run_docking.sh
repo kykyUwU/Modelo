@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Boucle sur tous les fichiers 2AM9xxx.pdbqt
 for prot in 2AM9*.pdbqt; do
     
@@ -11,6 +9,9 @@ for prot in 2AM9*.pdbqt; do
     # Vina
     vina --receptor "$prot" --config config.txt --out "${basename}_resultat.pdbqt" > "${basename}_log.txt"
     
+    mkdir -p "$basename"
+    mv "$prot" "${basename}_resultat.pdbqt" "${basename}_log.txt" "$basename/"
+
     echo "$basename done"
 
 done
