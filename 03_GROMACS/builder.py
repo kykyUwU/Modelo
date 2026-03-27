@@ -1,38 +1,54 @@
 import os
 import glob
 
-print("🚀 Lancement du Builder V3 (Routage Intelligent)...")
+print("🚀 Lancement du Builder V4 (Depuis 03_GROMACS)...")
 
-# --- PARAMÈTRES ET RÈGLES ---
+# --- PARAMÈTRES ---
 wt_name = "2AM9_clean"
-bad_mutants = ["2AM9_clean_W741A", "2AM9_clean_W741L"]       # Cross-Docking
-targeted_mutants = ["2AM9_clean_Q711A", "2AM9_clean_R752A"]  # Les 2 ciblés dans Docking_2
+bad_mutants = ["2AM9_clean_W741A", "2AM9_clean_W741L"]
+targeted_mutants = ["2AM9_clean_Q711A", "2AM9_clean_R752A"]
 
-# Fonction d'aiguillage automatique
-def get_path(mutant):
+# --- LE SECRET EST ICI : ".." pour remonter d'un dossier ---
+base_docking = "../02_Docking"
+
+def get_source_path(mutant):
     if mutant in targeted_mutants:
-        return f"02_Docking/Docking_2/{mutant}"
+        return f"{base_docking}/Docking_2/{mutant}"
     else:
-        return f"02_Docking/Docking_1/{mutant}"
+        return f"{base_docking}/Docking_1/{mutant}"
 
-# On dresse la liste de TOUS tes mutants en scannant les deux dossiers
-dossiers = glob.glob("02_Docking/Docking_1/2AM9_clean*/") + glob.glob("02_Docking/Docking_2/2AM9_clean*/")
-# On nettoie les noms et on enlève les doublons avec set()
+# On scanne les dossiers dans l'architecture parent
+dossiers = glob.glob(f"{base_docking}/Docking_1/2AM9_clean*/") + glob.glob(f"{base_docking}/Docking_2/2AM9_clean*/")
 mutants = list(set([os.path.basename(os.path.normpath(d)) for d in dossiers]))
+
+# Sécurité si le WT n'a pas été capté
+if wt_name not in mutants:
+    mutants.append(wt_name)
+
+# Fonction intelligente pour retrouver le PDB original de la protéine
+def copy_prot(mutant, dest_folder):
+    paths_to_check = [
+        f"{get_source_path(mutant)}/{mutant}.pdb", # Dans le dossier de docking
+        f"{base_docking}/{mutant}.pdb",            # À la racine de 02_Docking
+        f"../01_Preparation/{mutant}.pdb"          # Au cas où il serait encore dans la prép
+    ]
+    for p in paths_to_check:
+        if os.path.exists(p):
+            os.system(f"cp {p} {dest_folder}/prot.pdb")
+            return True
+    print(f"   ❌ AVERTISSEMENT : Impossible de trouver le PDB original pour {mutant}")
+    return False
 
 # ==========================================
 # 1. Traitement du Wild-Type
 # ==========================================
-wt_path = get_path(wt_name)
-print(f"\n⚡ Préparation du Wild-Type ({wt_name}) dans {wt_path}...")
+print(f"\n⚡ Préparation du Wild-Type ({wt_name})...")
+wt_src = get_source_path(wt_name)
+os.makedirs(wt_name, exist_ok=True) # Crée le dossier dans 03_GROMACS
 
-# Sécurité : Si le PDB de la protéine n'est pas dans le dossier, on le copie depuis la racine
-if not os.path.exists(f"{wt_path}/prot.pdb"):
-    os.system(f"cp {wt_name}.pdb {wt_path}/prot.pdb 2>/dev/null")
-
-# OpenBabel + PyMOL
-os.system(f"obabel -ipdbqt {wt_path}/*_resultat.pdbqt -f 1 -l 1 -opdb -O {wt_path}/ligand_brut.pdb 2>/dev/null")
-os.system(f"pymol -c -q -d 'load {wt_path}/ligand_brut.pdb; h_add; save {wt_path}/ligand_H.pdb' >/dev/null 2>&1")
+copy_prot(wt_name, wt_name)
+os.system(f"obabel -ipdbqt {wt_src}/*_resultat.pdbqt -f 1 -l 1 -opdb -O {wt_name}/ligand_brut.pdb 2>/dev/null")
+os.system(f"pymol -c -q -d 'load {wt_name}/ligand_brut.pdb; h_add; save {wt_name}/ligand_H.pdb' >/dev/null 2>&1")
 
 # ==========================================
 # 2. Topologie Centrale ACPYPE
@@ -40,15 +56,15 @@ os.system(f"pymol -c -q -d 'load {wt_path}/ligand_brut.pdb; h_add; save {wt_path
 print("🧪 Génération de la topologie centrale ACPYPE...")
 os.makedirs("00_Ligand_Topo", exist_ok=True)
 os.chdir("00_Ligand_Topo")
-os.system(f"acpype -i ../{wt_path}/ligand_H.pdb -c gas -n 0 > /dev/null 2>&1")
+os.system(f"acpype -i ../{wt_name}/ligand_H.pdb -c gas -n 0 > /dev/null 2>&1")
 os.system("mv ligand_H.acpype/* . 2>/dev/null")
 os.system("rm -rf ligand_H.acpype")
 os.chdir("..")
 
-# Assemblage du WT
-os.system(f"grep -v 'END' {wt_path}/prot.pdb > {wt_path}/complexe.pdb 2>/dev/null")
-os.system(f"grep '^ATOM\\|^HETATM' {wt_path}/ligand_H.pdb >> {wt_path}/complexe.pdb 2>/dev/null")
-os.system(f"echo 'END' >> {wt_path}/complexe.pdb")
+# Assemblage WT
+os.system(f"grep -v 'END' {wt_name}/prot.pdb > {wt_name}/complexe.pdb 2>/dev/null")
+os.system(f"grep '^ATOM\\|^HETATM' {wt_name}/ligand_H.pdb >> {wt_name}/complexe.pdb 2>/dev/null")
+os.system(f"echo 'END' >> {wt_name}/complexe.pdb")
 
 # ==========================================
 # 3. Traitement des Mutants
@@ -57,30 +73,27 @@ for mutant in sorted(mutants):
     if mutant == wt_name:
         continue
         
-    path = get_path(mutant)
+    src = get_source_path(mutant)
     print(f"\n🧬 Traitement : {mutant}")
-    print(f"   📂 Dossier source : {path}")
+    os.makedirs(mutant, exist_ok=True) # Crée le dossier dans 03_GROMACS
     
-    # Sécurité PDB
-    if not os.path.exists(f"{path}/prot.pdb"):
-        os.system(f"cp {mutant}.pdb {path}/prot.pdb 2>/dev/null")
+    copy_prot(mutant, mutant)
         
-    # Aiguillage Cross-Docking vs Extraction normale
     if mutant in bad_mutants:
         print("   -> 🚨 Pose ratée : Cross-Docking (Copie du WT)")
-        os.system(f"cp {wt_path}/ligand_H.pdb {path}/ligand_H.pdb 2>/dev/null")
+        os.system(f"cp {wt_name}/ligand_H.pdb {mutant}/ligand_H.pdb 2>/dev/null")
     else:
-        print("   -> ✅ Extraction de la pose native + PyMOL")
-        os.system(f"obabel -ipdbqt {path}/*_resultat.pdbqt -f 1 -l 1 -opdb -O {path}/ligand_brut.pdb 2>/dev/null")
-        os.system(f"pymol -c -q -d 'load {path}/ligand_brut.pdb; h_add; save {path}/ligand_H.pdb' >/dev/null 2>&1")
+        print(f"   -> ✅ Extraction native depuis {src}")
+        os.system(f"obabel -ipdbqt {src}/*_resultat.pdbqt -f 1 -l 1 -opdb -O {mutant}/ligand_brut.pdb 2>/dev/null")
+        os.system(f"pymol -c -q -d 'load {mutant}/ligand_brut.pdb; h_add; save {mutant}/ligand_H.pdb' >/dev/null 2>&1")
 
     # Assemblage
-    os.system(f"grep -v 'END' {path}/prot.pdb > {path}/complexe.pdb 2>/dev/null")
-    os.system(f"grep '^ATOM\\|^HETATM' {path}/ligand_H.pdb >> {path}/complexe.pdb 2>/dev/null")
-    os.system(f"echo 'END' >> {path}/complexe.pdb")
+    os.system(f"grep -v 'END' {mutant}/prot.pdb > {mutant}/complexe.pdb 2>/dev/null")
+    os.system(f"grep '^ATOM\\|^HETATM' {mutant}/ligand_H.pdb >> {mutant}/complexe.pdb 2>/dev/null")
+    os.system(f"echo 'END' >> {mutant}/complexe.pdb")
 
 # ==========================================
 # 4. Nettoyage
 # ==========================================
-os.system("rm -f 02_Docking/*/*/ligand_brut.pdb")
-print("\n🎉 TERMINE ! Tous tes 'complexe.pdb' sont générés et rangés dans leurs dossiers respectifs.")
+os.system("rm -f */ligand_brut.pdb")
+print("\n🎉 TERMINE ! Tous tes dossiers sont créés proprement dans 03_GROMACS.")

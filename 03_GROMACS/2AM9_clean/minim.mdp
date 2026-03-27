@@ -1,0 +1,14 @@
+; minim.mdp - Paramètres pour la minimisation d'énergie
+integrator  = steep         ; Algorithme de la plus forte pente
+emtol       = 1000.0        ; Force maximale tolérée (kJ/mol/nm)
+emstep      = 0.01          ; Taille du pas (nm)
+nsteps      = 50000         ; Nombre maximum d'itérations
+
+; Paramètres des interactions non-liées
+nstlist         = 1
+cutoff-scheme   = Verlet
+ns_type         = grid
+coulombtype     = PME       ; Électrostatique longue distance (Particle Mesh Ewald)
+rcoulomb        = 1.0       ; Rayon de coupure électrostatique (nm)
+rvdw            = 1.0       ; Rayon de coupure Van der Waals (nm)
+pbc             = xyz       ; Conditions aux limites périodiques dans les 3 directions
