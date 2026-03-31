@@ -2,7 +2,7 @@
 ;	File 'topol.top' was generated
 ;	By user: kylian (1000)
 ;	On host: DESKTOP-VVNUFN5
-;	At date: Fri Mar 27 14:51:45 2026
+;	At date: Tue Mar 31 09:53:12 2026
 ;
 ;	This is a standalone topology file
 ;
@@ -38841,5 +38841,6 @@ Protein in water
 ; Compound        #mols
 Protein_chain_A     1
 UNL                 1
-SOL         21342
-CL               5
+SOL         21218
+NA               62
+CL               67

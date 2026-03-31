@@ -2,7 +2,7 @@
 ;	File 'topol.top' was generated
 ;	By user: kylian (1000)
 ;	On host: DESKTOP-VVNUFN5
-;	At date: Fri Mar 27 14:51:45 2026
+;	At date: Tue Mar 31 09:53:12 2026
 ;
 ;	This is a standalone topology file
 ;
@@ -19,6 +19,8 @@
 
 ; Include forcefield parameters
 #include "oplsaa.ff/forcefield.itp"
+; Include ligand topology
+#include "../DHT.itp"
 
 [ moleculetype ]
 ; Name            nrexcl
@@ -38830,9 +38832,6 @@ Protein_chain_A     3
 
 ; Include topology for ions
 #include "oplsaa.ff/ions.itp"
-
-; Include ligand topology
-#include "../00_Ligand_Topo/DHT.itp"
 
 [ system ]
 ; Name

@@ -2,7 +2,7 @@
 ;	File 'topol.top' was generated
 ;	By user: kylian (1000)
 ;	On host: DESKTOP-VVNUFN5
-;	At date: Fri Mar 27 14:51:51 2026
+;	At date: Tue Mar 31 11:50:14 2026
 ;
 ;	This is a standalone topology file
 ;
@@ -19,6 +19,8 @@
 
 ; Include forcefield parameters
 #include "oplsaa.ff/forcefield.itp"
+; Include ligand topology
+#include "../DHT.itp"
 
 [ moleculetype ]
 ; Name            nrexcl
@@ -38801,14 +38803,14 @@ Protein_chain_A     3
 ; Include topology for ions
 #include "oplsaa.ff/ions.itp"
 
-; Include ligand topology
-#include "../00_Ligand_Topo/DHT.itp"
-
 [ system ]
 ; Name
-Protein
+Protein in water
 
 [ molecules ]
 ; Compound        #mols
 Protein_chain_A     1
 UNL                 1
+SOL         21217
+NA               62
+CL               67

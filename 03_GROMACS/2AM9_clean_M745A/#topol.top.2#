@@ -38784,6 +38784,4 @@ Protein in water
 ; Compound        #mols
 Protein_chain_A     1
 UNL                 1
-SOL         21220
-NA               62
-CL               67
+SOL             21349
