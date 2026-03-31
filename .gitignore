@@ -4,8 +4,6 @@
 *.edr
 *.tpr
 *.cpt
-*.gro
-*.log
 
 # Fichiers temporaires
 #*
