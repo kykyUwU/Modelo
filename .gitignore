@@ -1,6 +1,5 @@
 # Fichiers lourds GROMACS
 *.trr
-*.tpr
 *.cpt
 
 # Fichiers temporaires
